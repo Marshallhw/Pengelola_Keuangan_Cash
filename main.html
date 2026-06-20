@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111827">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <title>Dashboard Keuangan Pribadi Ultimate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Warna Dasar Aplikasi */
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b; 
+            --purple: #8b5cf6; 
+            
+            /* Palet Permanen Dark Mode */
+            --dark: #f9fafb; 
+            --white: #1f2937; 
+            --gray: #9ca3af;
+            --bg-body: #111827; 
+            --border-color: #374151;
+            --input-border: #4b5563;
+            --btn-sec-bg: #374151;
+            --btn-sec-hover: #4b5563;
+            --badge-bg: #374151;
+            --badge-text: #d1d5db;
+            --delete-bg: #7f1d1d;
+            --calendar-filter: invert(1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--dark);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* --- HEADER --- */
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-top h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* --- DASHBOARD CARDS --- */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            border-top: 4px solid var(--primary);
+        }
+        
+        .card.success { border-color: var(--success); }
+        .card.danger { border-color: var(--danger); }
+        .card.warning { border-color: var(--warning); }
+        .card.purple { border-color: var(--purple); }
+
+        .card h3 {
+            font-size: 13px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .card .amount {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+        .text-primary { color: var(--primary); }
+        .text-warning { color: var(--warning); }
+        .text-purple { color: var(--purple); }
+
+        /* --- MIDDLE SECTION (Form & Chart) --- */
+        .middle-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .box-section {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { font-size: 12px; font-weight: 500; margin-bottom: 5px; color: var(--gray); }
+
+        input, select {
+            padding: 10px;
+            background-color: var(--bg-body);
+            color: var(--dark);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            /* Memastikan tidak ada efek zoom di iOS/Android saat mengetik */
+            appearance: none; 
+        }
+
+        input:focus, select:focus { border-color: var(--primary); }
+
+        ::-webkit-calendar-picker-indicator {
+            filter: var(--calendar-filter);
+        }
+
+        .btn {
+            background: var(--primary); color: #fff; border: none;
+            padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer;
+            grid-column: 1 / -1; margin-top: 5px;
+        }
+        .btn:hover { background: var(--primary-hover); }
+
+        .btn-secondary {
+            background: var(--btn-sec-bg); color: var(--dark); border: 1px solid var(--input-border);
+            padding: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; flex: 1;
+            text-align: center;
+        }
+        .btn-secondary:hover { background: var(--btn-sec-hover); }
+
+        /* --- CHART SECTION --- */
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- TRANSACTION LIST --- */
+        .history-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        
+        .filters { display: flex; gap: 5px; flex-wrap: wrap; }
+        .filter-btn {
+            background: none; border: 1px solid var(--input-border); padding: 4px 10px;
+            border-radius: 20px; font-size: 12px; cursor: pointer; color: var(--dark);
+        }
+        .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        ul { list-style: none; margin-top: 15px; }
+        li {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid var(--border-color);
+        }
+
+        .trx-info { display: flex; flex-direction: column; }
+        .trx-title { font-weight: 600; font-size: 14px; }
+        .trx-meta { font-size: 11px; color: var(--gray); margin-top: 4px; display: flex; gap: 10px; align-items: center; }
+        .badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 500; background: var(--badge-bg); color: var(--badge-text); }
+        
+        .trx-amount-box { display: flex; align-items: center; gap: 15px; }
+        .trx-amount { font-weight: 700; font-size: 15px; text-align: right; }
+        .btn-delete {
+            background: var(--delete-bg); color: var(--danger); border: none; width: 28px; height: 28px;
+            border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 768px) {
+            .middle-grid { grid-template-columns: 2fr 1fr; } 
+        }
+
+        /* --- PENGATURAN KHUSUS LAYAR HP ANDROID (< 600px) --- */
+        @media (max-width: 600px) {
+            body { 
+                padding: 10px; /* Jarak tepi diperkecil agar lega di HP */
+            }
+            .header-top h2 { 
+                font-size: 18px; 
+            }
+            .dashboard { 
+                grid-template-columns: 1fr 1fr; /* Kartu dibagi jadi 2 kolom sejajar di HP */
+                gap: 10px; 
+            }
+            .dashboard .card:first-child {
+                grid-column: 1 / -1; /* Kartu "Saldo Aktif" dibuat panjang sendirian di atas */
+            }
+            .card { 
+                padding: 15px 10px; 
+            }
+            .card h3 { 
+                font-size: 11px; 
+            }
+            .card .amount { 
+                font-size: 18px; 
+            }
+            .box-section { 
+                padding: 15px; 
+            }
+            .chart-container {
+                height: 200px; /* Grafik sedikit dikecilkan di HP */
+            }
+            .trx-title { 
+                font-size: 13px; 
+            }
+            .trx-meta { 
+                flex-wrap: wrap; 
+                gap: 5px; 
+            }
+            .trx-amount { 
+                font-size: 13px; 
+            }
+            .trx-amount-box {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="header-top">
+            <h2>Dompetku</h2>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3>Saldo Aktif</h3>
+                <div class="amount text-primary" id="total-balance">0</div>
+            </div>
+            <div class="card success">
+                <h3>Total Pemasukan</h3>
+                <div class="amount text-success" id="total-income">0</div>
+            </div>
+            <div class="card danger">
+                <h3>Total Pengeluaran</h3>
+                <div class="amount text-danger" id="total-expense">0</div>
+            </div>
+            <div class="card warning">
+                <h3>Total Tabungan</h3>
+                <div class="amount text-warning" id="total-saving">0</div>
+            </div>
+            <div class="card purple">
+                <h3>Sisa Hutang</h3>
+                <div class="amount text-purple" id="total-debt">0</div>
+            </div>
+        </div>
+
+        <div class="middle-grid">
+            <div class="box-section">
+                <div class="section-title">Tambah Transaksi Baru</div>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Nama Transaksi</label>
+                        <input type="text" id="desc" placeholder="Cth: Gaji, Nabung, Pinjam" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Jumlah (Rp)</label>
+                        <input type="text" inputmode="numeric" id="amount" placeholder="50.000" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Jenis</label>
+                        <select id="type">
+                            <option value="income">Pemasukan (+)</option>
+                            <option value="expense">Pengeluaran (-)</option>
+                            <option value="saving">Menabung (- dari Saldo)</option>
+                            <option value="debt">Ambil Hutang (+ ke Saldo)</option>
+                            <option value="pay_debt">Bayar Hutang (- dari Saldo)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Kategori</label>
+                        <select id="category">
+                            <option value="Gaji">Gaji / Pendapatan</option>
+                            <option value="Makanan">Makanan & Minuman</option>
+                            <option value="Transportasi">Transportasi</option>
+                            <option value="Tagihan">Tagihan & Utilitas</option>
+                            <option value="Bank">Bank / Investasi</option>
+                            <option value="Hutang">Pinjaman / Cicilan</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Tanggal</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <button class="btn" onclick="addTransaction()">Simpan Transaksi</button>
+                </div>
+
+                <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <div class="input-group">
+                        <label style="margin-bottom: 8px; font-weight:600; color: var(--dark);">Data File (Backup)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-secondary" onclick="exportToFile()">Ekspor (.json)</button>
+                            <button class="btn-secondary" onclick="document.getElementById('import-input').click()">Impor File</button>
+                            <input type="file" id="import-input" accept=".json" style="display: none;" onchange="importFromFile(event)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box-section">
+                <div class="section-title">Grafik Keuangan</div>
+                <div class="chart-container">
+                    <canvas id="financeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="box-section">
+            <div class="history-header">
+                <div class="section-title" style="margin: 0; border: none; padding: 0;">Riwayat Transaksi</div>
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filterTransactions('all', this)">Semua</button>
+                    <button class="filter-btn" onclick="filterTransactions('income', this)">Masuk</button>
+                    <button class="filter-btn" onclick="filterTransactions('expense', this)">Keluar</button>
+                    <button class="filter-btn" onclick="filterTransactions('saving', this)">Tabungan</button>
+                    <button class="filter-btn" onclick="filterTransactions('debt', this)">Hutang</button>
+                </div>
+            </div>
+            <ul id="transaction-list">
+                </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('date').valueAsDate = new Date();
+
+        let transactions = JSON.parse(localStorage.getItem('finance_data_ultimate')) || [];
+        let currentFilter = 'all';
+        let myChart = null; 
+
+        // Setel warna teks grafik secara permanen ke warna terang
+        Chart.defaults.color = '#f9fafb';
+
+        // --- FITUR AUTO-FORMAT ANGKA DENGAN TITIK ---
+        const amountInput = document.getElementById('amount');
+        amountInput.addEventListener('input', function(e) {
+            let value = this.value.replace(/[^,\d]/g, ''); 
+            if (value === '') {
+                this.value = '';
+                return;
+            }
+            this.value = parseInt(value, 10).toLocaleString('id-ID');
+        });
+
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+        }
+
+        function updateUI() {
+            let income = 0, expense = 0, saving = 0, debt = 0, pay_debt = 0;
+
+            transactions.forEach(trx => {
+                if (trx.type === 'income') income += trx.amount;
+                if (trx.type === 'expense') expense += trx.amount;
+                if (trx.type === 'saving') saving += trx.amount;
+                if (trx.type === 'debt') debt += trx.amount;
+                if (trx.type === 'pay_debt') pay_debt += trx.amount; 
+            });
+
+            let totalBalance = (income + debt) - (expense + saving + pay_debt);
+            let currentDebt = debt - pay_debt;
+            if (currentDebt < 0) currentDebt = 0;
+
+            document.getElementById('total-balance').innerText = formatRupiah(totalBalance);
+            document.getElementById('total-income').innerText = formatRupiah(income);
+            document.getElementById('total-expense').innerText = formatRupiah(expense);
+            document.getElementById('total-saving').innerText = formatRupiah(saving);
+            document.getElementById('total-debt').innerText = formatRupiah(currentDebt);
+
+            renderList();
+            updateChart(income, expense, saving, currentDebt);
+        }
+
+        function updateChart(income, expense, saving, currentDebt) {
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            
+            if (myChart != null) {
+                myChart.destroy();
+            }
+
+            let chartData = [income, expense, saving, currentDebt];
+            let bgColors = ['#10b981', '#ef4444', '#f59e0b', '#8b5cf6'];
+            
+            if(income === 0 && expense === 0 && saving === 0 && currentDebt === 0) {
+                chartData = [1];
+                bgColors = ['#374151'];
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pemasukan', 'Pengeluaran', 'Tabungan', 'Sisa Hutang'],
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: bgColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: {size: 11} } }
+                    }
+                }
+            });
+        }
+
+        function renderList() {
+            const listEl = document.getElementById('transaction-list');
+            listEl.innerHTML = '';
+
+            const filteredData = transactions.filter(trx => {
+                if (currentFilter === 'all') return true;
+                if (currentFilter === 'debt') return trx.type === 'debt' || trx.type === 'pay_debt';
+                return trx.type === currentFilter;
+            });
+
+            filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (filteredData.length === 0) {
+                listEl.innerHTML = '<li style="justify-content:center; color: var(--gray); font-size:14px;">Belum ada data transaksi</li>';
+                return;
+            }
+
+            filteredData.forEach(trx => {
+                const li = document.createElement('li');
+                
+                let sign = '';
+                let colorClass = '';
+                let typeLabel = '';
+
+                if(trx.type === 'income') { sign = '+'; colorClass = 'text-success'; typeLabel = 'Pemasukan'; }
+                else if(trx.type === 'expense') { sign = '-'; colorClass = 'text-danger'; typeLabel = 'Pengeluaran'; }
+                else if(trx.type === 'saving') { sign = '-'; colorClass = 'text-warning'; typeLabel = 'Menabung'; }
+                else if(trx.type === 'debt') { sign = '+'; colorClass = 'text-purple'; typeLabel = 'Hutang Masuk'; }
+                else if(trx.type === 'pay_debt') { sign = '-'; colorClass = 'text-purple'; typeLabel = 'Bayar Hutang'; }
+
+                const dateString = new Date(trx.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                li.innerHTML = `
+                    <div class="trx-info">
+                        <span class="trx-title">${trx.desc}</span>
+                        <div class="trx-meta">
+                            <span class="badge" style="background: ${getBadgeColor(trx.type)}; color: white;">${typeLabel}</span>
+                            <span class="badge">${trx.category}</span>
+                            <span>${dateString}</span>
+                        </div>
+                    </div>
+                    <div class="trx-amount-box">
+                        <span class="trx-amount ${colorClass}">${sign} ${formatRupiah(trx.amount).replace('Rp', '').trim()}</span>
+                        <button class="btn-delete" onclick="deleteTransaction(${trx.id})" title="Hapus">✕</button>
+                    </div>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        function getBadgeColor(type) {
+            if(type === 'income') return '#10b981';
+            if(type === 'expense') return '#ef4444';
+            if(type === 'saving') return '#f59e0b';
+            if(type === 'debt' || type === 'pay_debt') return '#8b5cf6';
+            return 'var(--gray)';
+        }
+
+        function addTransaction() {
+            const desc = document.getElementById('desc').value;
+            const rawAmount = document.getElementById('amount').value.replace(/\./g, ''); 
+            const type = document.getElementById('type').value;
+            const category = document.getElementById('category').value;
+            const date = document.getElementById('date').value;
+
+            if (desc.trim() === '' || rawAmount.trim() === '' || date === '') {
+                alert('Harap isi keterangan dan jumlah (angka)!');
+                return;
+            }
+
+            const newTrx = {
+                id: Math.floor(Math.random() * 1000000000),
+                desc: desc,
+                amount: parseFloat(rawAmount),
+                type: type,
+                category: category,
+                date: date
+            };
+
+            transactions.push(newTrx);
+            saveData();
+            
+            document.getElementById('desc').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('desc').focus();
+        }
+
+        function deleteTransaction(id) {
+            if(confirm('Yakin ingin menghapus transaksi ini?')) {
+                transactions = transactions.filter(trx => trx.id !== id);
+                saveData();
+            }
+        }
+
+        function filterTransactions(type, btnElement) {
+            currentFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            renderList();
+        }
+
+        function saveData() {
+            localStorage.setItem('finance_data_ultimate', JSON.stringify(transactions));
+            updateUI();
+        }
+
+        function exportToFile() {
+            if (transactions.length === 0) return alert('Data kosong!');
+            const blob = new Blob([JSON.stringify(transactions, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `backup_keuangan_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function importFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data) && confirm('Timpa data saat ini dengan data dari file?')) {
+                        transactions = data;
+                        saveData();
+                        alert('Data berhasil diimpor!');
+                    }
+                } catch (err) { alert('Format file tidak valid!'); }
+                event.target.value = ''; 
+            };
+            reader.readAsText(file);
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
